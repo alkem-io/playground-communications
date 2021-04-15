@@ -23,20 +23,45 @@ export default function ChatView(props: ChatViewProps) {
   const [room, setRoom] = useState<
     MessagesViewProps["entities"]["room"] | null
   >(null);
+  const [events, setEvents] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     if (client) {
       var rooms_response = client.getRooms();
       setRooms(rooms_response);
-      setRoom(rooms_response[1]);
+      setRoom(rooms_response[0]);
+      setEvents(
+        rooms_response.reduce(
+          (aggr, r) => ({
+            ...aggr,
+            [r.roomId]: r.timeline,
+          }),
+          {}
+        )
+      );
     }
-  }, [setRooms, client]);
+  }, [setRooms, setEvents, client]);
+
+  useEffect(() => {
+    async function timelineMonitor(event) {
+      const roomId = event.getRoomId();
+
+      setEvents((x) => ({
+        ...x,
+        [roomId]: [...x[roomId], event],
+      }));
+    }
+
+    client?.on("Room.timeline", timelineMonitor);
+
+    return () => client?.off("Room.timeline", timelineMonitor);
+  }, [client, setEvents]);
 
   return (
     <ChatContainer>
       <RoomsView entities={{ rooms }} actions={{ onSelect: setRoom }} />
       <ScaledMessagesContainer>
-        <MessagesView entities={{ room }} />
+        <MessagesView entities={{ room, events: events[room?.roomId] || [] }} />
       </ScaledMessagesContainer>
     </ChatContainer>
   );

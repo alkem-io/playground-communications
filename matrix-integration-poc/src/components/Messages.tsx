@@ -38,6 +38,7 @@ const MessageDetailsContainer = styled.div`
 export interface MessagesViewProps {
   entities: {
     room?: any;
+    events: any[];
   };
 }
 
@@ -45,8 +46,8 @@ export default function MessagesView({ entities }: MessagesViewProps) {
   return (
     <MessagesContainer>
       <MessageContainerHeader>{entities.room?.name}</MessageContainerHeader>
-      {entities.room?.timeline.map((r, i) => (
-        <MessageView entities={{ message: r }} key={r.messageId || i} />
+      {entities.events.map((r, i) => (
+        <MessageView entities={{ event: r }} key={r.messageId || i} />
       ))}
     </MessagesContainer>
   );
@@ -54,19 +55,21 @@ export default function MessagesView({ entities }: MessagesViewProps) {
 
 interface MessageViewProps {
   entities: {
-    message: MatrixEvent;
+    event: MatrixEvent;
   };
 }
 
 function MessageView({ entities }: MessageViewProps) {
-  const { message } = entities;
+  const { event: message } = entities;
   const { event, sender } = message;
 
   return (
     <MessageContainer>
       <MessageNameContainer>{event.content?.ciphertext}</MessageNameContainer>
       <MessageDetailsContainer>
-        {message.messageId} - {sender.name}
+        {sender.name}
+        {event.origin_server_ts &&
+          ` at ${new Date(event.origin_server_ts).toLocaleTimeString()}`}
       </MessageDetailsContainer>
     </MessageContainer>
   );
