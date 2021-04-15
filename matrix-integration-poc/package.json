@@ -11,6 +11,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/styled-components": "^5.1.9",
+    "lodash": "^4.17.21",
     "matrix-js-sdk": "^9.11.0",
     "matrix-react-sdk": "^3.18.0",
     "react": "^17.0.2",

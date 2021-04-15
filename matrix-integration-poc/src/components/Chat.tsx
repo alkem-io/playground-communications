@@ -1,7 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import MatrixClientContext from "../contexts/matrix-client";
 import MessagesView, { MessagesViewProps } from "./Messages";
+import ReplyView from "./Reply";
 import RoomsView, { RoomsViewProps } from "./Rooms";
 
 const ChatContainer = styled.div`
@@ -13,6 +14,18 @@ const ChatContainer = styled.div`
 const ScaledMessagesContainer = styled.div`
   flex-grow: 4;
   display: flex;
+  position: relative;
+`;
+
+const AbsoluteMessagesContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 56px;
+  display: flex;
+  overflow: auto;
+  padding: 8px;
 `;
 
 interface ChatViewProps {}
@@ -57,11 +70,33 @@ export default function ChatView(props: ChatViewProps) {
     return () => client?.off("Room.timeline", timelineMonitor);
   }, [client, setEvents]);
 
+  const onSend = useCallback(
+    (reply) => {
+      if (reply) {
+        client?.sendEvent(
+          room.roomId,
+          "m.room.message",
+          {
+            body: reply,
+            msgtype: "m.text",
+          },
+          ""
+        );
+      }
+    },
+    [room, client]
+  );
+
   return (
     <ChatContainer>
       <RoomsView entities={{ rooms }} actions={{ onSelect: setRoom }} />
       <ScaledMessagesContainer>
-        <MessagesView entities={{ room, events: events[room?.roomId] || [] }} />
+        <AbsoluteMessagesContainer>
+          <MessagesView
+            entities={{ room, events: events[room?.roomId] || [] }}
+          />
+        </AbsoluteMessagesContainer>
+        <ReplyView actions={{ onReply: onSend }} />
       </ScaledMessagesContainer>
     </ChatContainer>
   );

@@ -7,6 +7,7 @@ const MessagesContainer = styled.div`
   padding: 8px 16px;
   flex-direction: column;
   flex-grow: 1;
+  overflow: auto;
 `;
 
 const MessageContainerHeader = styled.div`
