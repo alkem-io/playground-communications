@@ -26,7 +26,7 @@ try {
  *
  * @returns {MatrixClient} the newly-created MatrixClient
  */
-export default function createMatrixClient(opts) {
+export default function createMatrixClient({ options }) {
   const storeOpts: Partial<ICreateClientOpts> = {
     useAuthorizationHeader: true,
   };
@@ -51,10 +51,12 @@ export default function createMatrixClient(opts) {
     );
   }
 
-  opts = Object.assign(storeOpts, opts);
+  const opts: ICreateClientOpts = Object.assign(storeOpts, options, {
+    deviceId: "DEVICE_ID",
+  });
 
   // TODO - get the device_id (more info in matrix-js-sdk)
-  return createClient({ ...opts, deviceId: "DEVICE_ID" });
+  return createClient(opts);
 }
 
 createMatrixClient.indexedDbWorkerScript = null;
