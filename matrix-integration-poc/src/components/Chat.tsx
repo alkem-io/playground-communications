@@ -57,6 +57,10 @@ export default function ChatView(props: ChatViewProps) {
 
   useEffect(() => {
     async function timelineMonitor(event) {
+      if (event.getType() !== "m.room.message") {
+        return;
+      }
+
       const roomId = event.getRoomId();
 
       setEvents((x) => ({

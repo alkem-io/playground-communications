@@ -3,6 +3,10 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import PlatformPeg from "matrix-react-sdk/src/PlatformPeg";
+import WebPlatform from "./platform/web";
+
+PlatformPeg.set(new WebPlatform());
 
 ReactDOM.render(
   <React.StrictMode>

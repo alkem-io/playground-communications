@@ -32,7 +32,13 @@ export interface ReplyViewProps {
 export default function ReplyView({ actions }: ReplyViewProps) {
   return (
     <ReplyContainer>
-      <Input onKeyUp={(e) => actions.onReply(e.currentTarget.value)} />
+      <Input
+        onKeyUp={(e) => {
+          if (e.key === "Enter") {
+            actions.onReply(e.currentTarget.value);
+          }
+        }}
+      />
     </ReplyContainer>
   );
 }

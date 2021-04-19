@@ -4,7 +4,6 @@ import ChatView from "./components/Chat";
 import MatrixClientContext from "./contexts/matrix-client";
 import useMatrixClient from "./hooks/useMatrixClient";
 import matrix_config from "./matrix-config.json";
-// import * as sdk from "matrix-react-sdk";
 
 function App() {
   const client = useMatrixClient({ options: matrix_config });

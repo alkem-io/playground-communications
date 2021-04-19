@@ -1,8 +1,8 @@
 // WITH minor modifications from matrix-react-sdk
 import { createClient, ICreateClientOpts } from "matrix-js-sdk";
-import { IndexedDBCryptoStore } from "matrix-js-sdk/lib/crypto/store/indexeddb-crypto-store";
-import { WebStorageSessionStore } from "matrix-js-sdk/lib/store/session/webstorage";
-import { IndexedDBStore } from "matrix-js-sdk/lib/store/indexeddb";
+import { IndexedDBCryptoStore } from "matrix-js-sdk/src/crypto/store/indexeddb-crypto-store";
+import { WebStorageSessionStore } from "matrix-js-sdk/src/store/session/webstorage";
+import { IndexedDBStore } from "matrix-js-sdk/src/store/indexeddb";
 
 const localStorage = window.localStorage;
 
