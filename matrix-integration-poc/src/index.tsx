@@ -1,19 +1,23 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import PlatformPeg from "matrix-react-sdk/src/PlatformPeg";
-import WebPlatform from "./platform/web";
+// import "./overwrites/Skinner";
+import { loadSkin } from "./loaders/theme";
 
-PlatformPeg.set(new WebPlatform());
+loadSkin().then(async () => {
+  const { bootstrap } = await import("./loaders");
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById("root")
-);
+  const fragparts = await bootstrap();  
+  const { default: App } = await import("./App");
+
+  ReactDOM.render(
+    <React.StrictMode>
+      <App fragParams={fragparts.params} />
+    </React.StrictMode>,
+    document.getElementById("root")
+  );
+})
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

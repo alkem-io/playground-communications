@@ -13,11 +13,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "noImplicitAny": false,
+    "noImplicitThis": false,
     "jsx": "react-jsx",
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "types": []
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

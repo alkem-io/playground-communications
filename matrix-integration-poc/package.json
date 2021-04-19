@@ -18,14 +18,17 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
+    "sanitize-html": "github:apostrophecms/sanitize-html#3c7f93f2058f696f5359e3e58d464161647226db",
     "styled-components": "^5.2.3",
     "typescript": "^4.1.2",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "reskindex": "reskindex -h src/header",
     "start": "react-app-rewired start",
-    "build": "yarn build:res && react-app-rewired build",
+    "build": "yarn build:reskindex && yarn build:res && react-app-rewired build",
     "build:res": "node scripts/build-resources.js",
+    "build:reskindex": "yarn reskindex",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
@@ -34,6 +37,9 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "resolutions": {
+    "**/@types/react": "^16.14"
   },
   "browserslist": {
     "production": [
@@ -66,6 +72,8 @@
     "@babel/preset-typescript": "^7.12.7",
     "@babel/register": "^7.12.10",
     "@babel/traverse": "^7.12.12",
+    "@types/flux": "^3.1.9",
+    "@types/sanitize-html": "^2.3.0",
     "arraybuffer-loader": "^1.0.8",
     "copy-webpack-plugin": "^6.2.1",
     "cpx": "^1.5.0",

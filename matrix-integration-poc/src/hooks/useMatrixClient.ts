@@ -1,34 +1,42 @@
 import { ICreateClientOpts } from "matrix-js-sdk";
 import { MatrixClient } from "matrix-js-sdk/src/client";
+import { MatrixClientPeg } from "matrix-react-sdk/src/MatrixClientPeg";
+import createMatrixClient from "matrix-react-sdk/src/utils/createMatrixClient";
+import PlatformPegRoot from "matrix-react-sdk/src/PlatformPeg";
 import { useEffect, useState } from "react";
-import createMatrixClient from "../loaders/matrix";
-import { loadOlm } from "../loaders/olm";
+import VectorBasePlatform from "../platform/VectorBasePlatform";
 
 export default function useMatrixClient({
   options,
 }: {
-  options: ICreateClientOpts;
+  options: ICreateClientOpts | null;
 }): MatrixClient {
   const [client, setClient] = useState<MatrixClient>();
 
   useEffect(() => {
     async function bootstrapClient() {
-      const matrix_client = createMatrixClient({ options });
-      await matrix_client.startClient();
+      let matrix_client: MatrixClient | null = null;
+
       try {
-        await loadOlm();
+        // MatrixClientPeg.setIndexedDbWorkerScript(vectorIndexeddbWorkerScript);
+
+        const platform = PlatformPegRoot.get();
+        (platform as VectorBasePlatform).startUpdater();
+
+        matrix_client = createMatrixClient(options);
+        await matrix_client.startClient();
         await matrix_client.initCrypto();
       } catch (ex) {
         console.error(ex);
       }
 
-      matrix_client.once("sync", function (state, prevState, res) {
+      matrix_client?.once("sync", function (state, prevState, res) {
         setClient(matrix_client);
         console.info("state", state, prevState, res); // state will be 'PREPARED' when the client is ready to use
       });
     }
 
-    if (!client) {
+    if (!client && options) {
       bootstrapClient();
     }
   });

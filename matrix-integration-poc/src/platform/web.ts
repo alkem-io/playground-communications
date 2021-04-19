@@ -1,40 +1,21 @@
-/*
-Copyright 2016 Aviral Dasgupta
-Copyright 2016 OpenMarket Ltd
-Copyright 2017-2020 New Vector Ltd
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-import BasePlatform from "matrix-react-sdk/src/BasePlatform";
-import { UpdateCheckStatus } from "matrix-react-sdk/src/BasePlatform";
 import request from "browser-request";
-import dis from "matrix-react-sdk/src/dispatcher/dispatcher";
-import { _t } from "matrix-react-sdk/src/languageHandler";
 import { Room } from "matrix-js-sdk/src/models/room";
+import { UpdateCheckStatus } from "matrix-react-sdk/src/BasePlatform";
+import { Action } from "matrix-react-sdk/src/dispatcher/actions";
+import dis from "matrix-react-sdk/src/dispatcher/dispatcher";
+import { CheckUpdatesPayload } from "matrix-react-sdk/src/dispatcher/payloads/CheckUpdatesPayload";
+import { _t } from "matrix-react-sdk/src/languageHandler";
 import {
   hideToast as hideUpdateToast,
   showToast as showUpdateToast,
 } from "matrix-react-sdk/src/toasts/UpdateToast";
-import { Action } from "matrix-react-sdk/src/dispatcher/actions";
-import { CheckUpdatesPayload } from "matrix-react-sdk/src/dispatcher/payloads/CheckUpdatesPayload";
-import matrix_config from "../matrix-config.json";
-
 import UAParser from "ua-parser-js";
+import matrix_config from "../matrix-config.json";
+import VectorBasePlatform from "./VectorBasePlatform";
 
 const POKE_RATE_MS = 10 * 60 * 1000; // 10 min
 
-export default class WebPlatform extends BasePlatform {
+export default class WebPlatform extends VectorBasePlatform {
   private runningVersion: string | null = null;
 
   constructor() {

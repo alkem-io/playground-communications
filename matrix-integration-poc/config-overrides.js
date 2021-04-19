@@ -1,4 +1,9 @@
-const { override, useBabelRc, addWebpackAlias } = require("customize-cra");
+const {
+  override,
+  useBabelRc,
+  addWebpackAlias,
+  addDecoratorsLegacy,
+} = require("customize-cra");
 const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
@@ -56,12 +61,35 @@ const addMatrixRules = () =>
         name: "i18n/[name].[hash:7].[ext]",
       },
     });
+    rules.push({
+      // Fix up the name of the opus-recorder worker (react-sdk dependency).
+      // We more or less just want it to be clear it's for opus and not something else.
+      test: /encoderWorker\.min\.js$/,
+      loader: "file-loader",
+      type: "javascript/auto", // https://github.com/webpack/webpack/issues/6725
+      options: {
+        // We deliberately override the name so it makes sense in debugging
+        name: "opus-encoderWorker.min.[hash:7].[ext]",
+        outputPath: ".",
+      },
+    });
 
     updateTsRule(rules);
+
+    // config.entry = {
+    //   ...config.entry,
+    //   // "indexeddb-worker": "./src/indexeddb-worker.js",
+    // };
 
     config.output = {
       ...config.output,
       path: path.join(__dirname, "build"),
+    };
+
+    config.resolve = {
+      ...config.resolve,
+      mainFields: ["matrix_src_browser", "matrix_src_main", "browser", "main"],
+      aliasFields: ["matrix_src_browser", "browser"],
     };
 
     return Object.assign(config, {
@@ -86,8 +114,6 @@ const addCopyPlugin = () =>
     return config;
   };
 
-console.log(path.resolve(__dirname, "build"));
-
 module.exports = override(
   // use babel because of features in matrix-react-sdk
 
@@ -97,9 +123,11 @@ module.exports = override(
   }),
 
   registerBabelRc(),
-  
+
   // load wasm files
   addMatrixRules(),
+
+  addDecoratorsLegacy(),
 
   // ensure that olm legacy could be loaded
   addCopyPlugin()
