@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 
 const RoomsContainer = styled.div`
@@ -39,9 +39,7 @@ export interface RoomsViewProps {
   entities: {
     rooms: RoomViewProps["entities"]["room"][];
   };
-  actions: {
-    onSelect: (room: any) => void;
-  };
+  actions: RoomViewProps["actions"] & CreateRoomViewProps["actions"];
 }
 
 export default function RoomsView({ entities, actions }: RoomsViewProps) {
@@ -50,6 +48,8 @@ export default function RoomsView({ entities, actions }: RoomsViewProps) {
       {entities.rooms.map((r) => (
         <RoomView entities={{ room: r }} actions={actions} key={r.roomId} />
       ))}
+      <div style={{ flexGrow: 1 }}></div>
+      <CreateRoomView actions={actions} />
     </RoomsContainer>
   );
 }
@@ -70,6 +70,24 @@ function RoomView({ entities, actions }: RoomViewProps) {
     <RoomContainer onClick={() => actions.onSelect(room)}>
       <RoomNameContainer>{room.name}</RoomNameContainer>
       <RoomDetailsContainer>{room.roomId}</RoomDetailsContainer>
+    </RoomContainer>
+  );
+}
+
+interface CreateRoomViewProps {
+  actions: {
+    onCreate: (room: any) => void;
+  };
+}
+
+function CreateRoomView({ actions }: CreateRoomViewProps) {
+  const [value, setValue] = useState("new room name");
+  return (
+    <RoomContainer>
+      <input value={value} onChange={(e) => setValue(e.currentTarget.value)} />
+      <button onClick={() => actions.onCreate({ name: value })}>
+        Create Room
+      </button>
     </RoomContainer>
   );
 }

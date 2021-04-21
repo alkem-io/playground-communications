@@ -64,9 +64,13 @@ function MessageView({ entities }: MessageViewProps) {
   const { event: message } = entities;
   const { event, sender } = message;
 
+  if (!event.content?.body) {
+    return <></>;
+  }
+
   return (
     <MessageContainer>
-      <MessageNameContainer>{event.content?.ciphertext}</MessageNameContainer>
+      <MessageNameContainer>{event.content?.body}</MessageNameContainer>
       <MessageDetailsContainer>
         {sender.name}
         {event.origin_server_ts &&

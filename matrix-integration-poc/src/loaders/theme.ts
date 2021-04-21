@@ -1,4 +1,4 @@
-// import { setTheme } from "matrix-react-sdk/src/theme";
+import { setTheme } from "matrix-react-sdk/src/theme";
 import { components } from "../component-index";
 
 export async function loadSkin() {
@@ -10,6 +10,6 @@ export async function loadSkin() {
   sdk.loadSkin({ components });
 }
 
-// export async function loadTheme() {
-//   setTheme();
-// }
+export async function loadTheme() {
+  setTheme();
+}

@@ -47,7 +47,9 @@ export default function useMatrixSso(): MatrixClient {
       }
     }
 
-    bootstrapSession();
+    if (!userId) {
+      bootstrapSession();
+    }
   });
 
   return { userId, authParams, config };

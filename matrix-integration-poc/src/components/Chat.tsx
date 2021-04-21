@@ -1,6 +1,8 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import MatrixClientContext from "../contexts/matrix-client";
+import useMatrixRoom from "../hooks/useMatrixRoom";
+import useMatrixRoomManagement from "../hooks/useMatrixRoomManagement";
 import MessagesView, { MessagesViewProps } from "./Messages";
 import ReplyView from "./Reply";
 import RoomsView, { RoomsViewProps } from "./Rooms";
@@ -28,51 +30,48 @@ const AbsoluteMessagesContainer = styled.div`
   padding: 8px;
 `;
 
+const RoomsContainer = styled.div`
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  width: 240px;
+`;
+
 interface ChatViewProps {}
 
 export default function ChatView(props: ChatViewProps) {
   const client = useContext(MatrixClientContext);
+  const [groups, setGroups] = useState<
+    MessagesViewProps["entities"]["room"] | null
+  >(null);
   const [rooms, setRooms] = useState<RoomsViewProps["entities"]["rooms"]>([]);
   const [room, setRoom] = useState<
     MessagesViewProps["entities"]["room"] | null
   >(null);
-  const [events, setEvents] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     if (client) {
       var rooms_response = client.getRooms();
+      var groups_response = client.getGroups();
+      setGroups(groups_response);
       setRooms(rooms_response);
-      setRoom(rooms_response[0]);
-      setEvents(
-        rooms_response.reduce(
-          (aggr, r) => ({
-            ...aggr,
-            [r.roomId]: r.timeline,
-          }),
-          {}
-        )
-      );
+      setRoom(rooms_response[rooms_response.length - 1]);
     }
-  }, [setRooms, setEvents, client]);
+  }, [setRooms, client]);
 
   useEffect(() => {
-    async function timelineMonitor(event) {
-      if (event.getType() !== "m.room.message") {
-        return;
-      }
+    const roomMonitor = async function () {
+      var rooms_response = client.getRooms();
+      setRooms(rooms_response);
+      setRoom(rooms_response[rooms_response.length - 1]);
+    };
 
-      const roomId = event.getRoomId();
-
-      setEvents((x) => ({
-        ...x,
-        [roomId]: [...x[roomId], event],
-      }));
+    if (client) {
+      client.on("Room", roomMonitor);
     }
 
-    client?.on("Room.timeline", timelineMonitor);
-
-    return () => client?.off("Room.timeline", timelineMonitor);
-  }, [client, setEvents]);
+    return () => client?.off("Room", roomMonitor);
+  }, [client]);
 
   const onSend = useCallback(
     (reply) => {
@@ -91,14 +90,30 @@ export default function ChatView(props: ChatViewProps) {
     [room, client]
   );
 
+  const { room: target, timeline } = useMatrixRoom(room);
+  const { createRoom } = useMatrixRoomManagement();
+
   return (
     <ChatContainer>
-      <RoomsView entities={{ rooms }} actions={{ onSelect: setRoom }} />
+      <RoomsContainer>
+        <RoomsView
+          entities={{ rooms }}
+          actions={{
+            onSelect: setRoom,
+            onCreate: (room) => createRoom(room, groups[1].groupId),
+          }}
+        />
+        {groups && (
+          <div>
+            {groups.map((g) => (
+              <span key={g.groupId}>{g.groupId}</span>
+            ))}
+          </div>
+        )}
+      </RoomsContainer>
       <ScaledMessagesContainer>
         <AbsoluteMessagesContainer>
-          <MessagesView
-            entities={{ room, events: events[room?.roomId] || [] }}
-          />
+          <MessagesView entities={{ room: target, events: timeline }} />
         </AbsoluteMessagesContainer>
         <ReplyView actions={{ onReply: onSend }} />
       </ScaledMessagesContainer>

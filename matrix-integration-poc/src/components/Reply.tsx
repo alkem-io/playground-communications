@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 
 const ReplyContainer = styled.div`
@@ -30,12 +30,17 @@ export interface ReplyViewProps {
 }
 
 export default function ReplyView({ actions }: ReplyViewProps) {
+  const [value, setState] = useState<string>("");
   return (
     <ReplyContainer>
       <Input
+        value={value}
+        onChange={(e) => setState(e.currentTarget.value)}
         onKeyUp={(e) => {
           if (e.key === "Enter") {
             actions.onReply(e.currentTarget.value);
+            setState("");
+            return;
           }
         }}
       />

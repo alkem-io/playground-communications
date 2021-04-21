@@ -1,5 +1,6 @@
 import { initRageshake, initRageshakeStore } from "./rageshake";
 import { loadOlm } from "./olm";
+// import { loadTheme } from "./theme";
 import loadConfig from "./config";
 import { loadLanguage } from "./language";
 import PlatformPeg from "matrix-react-sdk/src/PlatformPeg";
@@ -8,7 +9,7 @@ import { parseQsFromFragment } from "../utils/query";
 
 export async function bootstrap() {
   try {
-    await initRageshake();
+    // await initRageshake();
 
     const fragparts = parseQsFromFragment(window.location);
     const preventRedirect =
@@ -33,8 +34,9 @@ export async function bootstrap() {
     PlatformPeg.set(new WebPlatform());
 
     await loadConfig();
-    await initRageshakeStore();
+    // await initRageshakeStore();
     await Promise.all([loadLanguage()]);
+    // await loadTheme();
 
     return fragparts;
   } catch (ex) {

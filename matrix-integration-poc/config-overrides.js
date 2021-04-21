@@ -3,6 +3,7 @@ const {
   useBabelRc,
   addWebpackAlias,
   addDecoratorsLegacy,
+  addPostcssPlugins,
 } = require("customize-cra");
 const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
@@ -20,6 +21,7 @@ const jsSdkSrcDir = path.resolve(
 );
 
 const resolveTargets = ["file.js", "file.ts", "file.tsx", "file.jsx"];
+const sassRegex = /\.(scss|sass)$/;
 
 const updateTsRule = (rules) => {
   const ruleBundle = rules.find((r) => r.oneOf);
@@ -38,6 +40,34 @@ const updateTsRule = (rules) => {
       return true;
     }
   };
+};
+
+const updateSassRule = (rules) => {
+  const ruleBundle = rules.find((r) => r.oneOf);
+  const rule = ruleBundle.oneOf.find((r) => {
+    if (Array.isArray(r.test)) {
+      return false;
+    }
+
+    return String(r.test) === String(sassRegex);
+  });
+  rule.use = [
+    ...rule.use,
+    {
+      loader: "postcss-loader",
+      ident: "postcss",
+      options: {
+        sourceMap: true,
+        plugins: [
+          // Note that we use slightly different plugins for SCSS.
+        ],
+        parser: "postcss-scss",
+        "local-plugins": true,
+      },
+    },
+  ];
+
+  console.log(rule.use);
 };
 
 const addMatrixRules = () =>
@@ -75,11 +105,27 @@ const addMatrixRules = () =>
     });
 
     updateTsRule(rules);
+    // updateSassRule(rules);
 
     // config.entry = {
     //   ...config.entry,
     //   // "indexeddb-worker": "./src/indexeddb-worker.js",
     // };
+
+    const noParse = [
+      // for cross platform compatibility use [\\\/] as the path separator
+      // this ensures that the regex trips on both Windows and *nix
+
+      // don't parse the languages within highlight.js. They cause stack
+      // overflows (https://github.com/webpack/webpack/issues/1721), and
+      // there is no need for webpack to parse them - they can just be
+      // included as-is.
+      /highlight\.js[\\\/]lib[\\\/]languages/,
+
+      // olm takes ages for webpack to process, and it's already heavily
+      // optimised, so there is little to gain by us uglifying it.
+      /olm[\\\/](javascript[\\\/])?olm\.js$/,
+    ];
 
     config.output = {
       ...config.output,
@@ -93,7 +139,7 @@ const addMatrixRules = () =>
     };
 
     return Object.assign(config, {
-      module: Object.assign(config.module, { rules }),
+      module: Object.assign(config.module, { noParse, rules }),
     });
   };
 
@@ -130,5 +176,24 @@ module.exports = override(
   addDecoratorsLegacy(),
 
   // ensure that olm legacy could be loaded
-  addCopyPlugin()
+  addCopyPlugin(),
+
+  addPostcssPlugins([
+    require("postcss-import")(),
+    require("postcss-mixins")(),
+    require("postcss-simple-vars")(),
+    require("postcss-extend")(),
+    require("postcss-nested")(),
+    require("postcss-easings")(),
+    require("postcss-strip-inline-comments")(),
+    require("postcss-hexrgba")(),
+    require("postcss-calc")({ warnWhenCannotResolve: true }),
+
+    // It's important that this plugin is last otherwise we end
+    // up with broken CSS.
+    require("postcss-preset-env")({
+      stage: 3,
+      browsers: "last 2 versions",
+    }),
+  ])
 );
