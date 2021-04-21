@@ -2,22 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-// import "./overwrites/Skinner";
-import { loadSkin } from "./loaders/theme";
 
-loadSkin().then(async () => {
-  const { bootstrap } = await import("./loaders");
+import App from "./App";
 
-  const fragparts = await bootstrap();  
-  const { default: App } = await import("./App");
-
-  ReactDOM.render(
-    <React.StrictMode>
-      <App fragParams={fragparts.params} />
-    </React.StrictMode>,
-    document.getElementById("root")
-  );
-})
+ReactDOM.render(
+  <React.StrictMode>
+    <App fragParams={null} />
+  </React.StrictMode>,
+  document.getElementById("root")
+);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

@@ -5,6 +5,7 @@ import createMatrixClient from "matrix-react-sdk/src/utils/createMatrixClient";
 import PlatformPegRoot from "matrix-react-sdk/src/PlatformPeg";
 import { useEffect, useState } from "react";
 import VectorBasePlatform from "../platform/VectorBasePlatform";
+import { createClient } from "matrix-js-sdk/src";
 
 export default function useMatrixClient({
   options,
@@ -20,18 +21,18 @@ export default function useMatrixClient({
       try {
         // MatrixClientPeg.setIndexedDbWorkerScript(vectorIndexeddbWorkerScript);
 
-        const platform = PlatformPegRoot.get();
-        (platform as VectorBasePlatform).startUpdater();
+        // const platform = PlatformPegRoot.get();
+        // (platform as VectorBasePlatform).startUpdater();
 
-        matrix_client = createMatrixClient(options);
-        await matrix_client.startClient();
-        await matrix_client.initCrypto();
+        matrix_client = createClient(options);
+        // await matrix_client.startClient();
+        // await matrix_client.initCrypto();
+        setClient(matrix_client);
       } catch (ex) {
         console.error(ex);
       }
 
       matrix_client?.once("sync", function (state, prevState, res) {
-        setClient(matrix_client);
         console.info("state", state, prevState, res); // state will be 'PREPARED' when the client is ready to use
       });
     }

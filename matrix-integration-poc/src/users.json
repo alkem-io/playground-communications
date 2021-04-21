@@ -1,0 +1,19 @@
+{
+  "admin": {
+    "name": "ct-admin",
+    "username": "@ct-admin:cherrytwist.matrix.host",
+    "password": "ct-admin-password"
+  },
+  "clients": [
+    {
+      "name": "nevelichkoff",
+      "username": "@nevelichkoff:cherrytwist.matrix.host",
+      "password": "nevelichkoff-password"
+    },
+    {
+      "name": "nikola",
+      "username": "@nikola:cherrytwist.matrix.host",
+      "password": "nikola-password"
+    }
+  ]
+}
