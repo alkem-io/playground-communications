@@ -1,11 +1,11 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import styled from "styled-components";
-import MatrixClientContext from "../contexts/matrix-client";
+import MatrixCommunicationFacadeContext from "../contexts/matrix-client";
 import useMatrixRoom from "../hooks/useMatrixRoom";
-import useMatrixRoomManagement from "../hooks/useMatrixRoomManagement";
+import { IMatrixUser } from "../server/matrix-configuration-provider";
 import MessagesView, { MessagesViewProps } from "./Messages";
 import ReplyView from "./Reply";
-import RoomsView, { RoomsViewProps } from "./Rooms";
+import RoomsView from "./Rooms";
 
 const ChatContainer = styled.div`
   display: flex;
@@ -37,72 +37,82 @@ const RoomsContainer = styled.div`
   width: 240px;
 `;
 
-interface ChatViewProps {}
+interface ChatViewProps {
+  users: IMatrixUser[];
+}
 
 export default function ChatView(props: ChatViewProps) {
-  const client = useContext(MatrixClientContext);
+  const communicator = useContext(MatrixCommunicationFacadeContext);
+  const [communicatorReady, setCommunicatorReady] = useState(false);
   const [groups, setGroups] = useState<
     MessagesViewProps["entities"]["room"] | null
   >(null);
-  const [rooms, setRooms] = useState<RoomsViewProps["entities"]["rooms"]>([]);
+  const [rooms, setRooms] = useState<any[]>(null);
   const [room, setRoom] = useState<
     MessagesViewProps["entities"]["room"] | null
   >(null);
 
   useEffect(() => {
-    if (client) {
-      var rooms_response = client.getRooms();
-      var groups_response = client.getGroups();
-      setGroups(groups_response);
-      setRooms(rooms_response);
-      setRoom(rooms_response[rooms_response.length - 1]);
-    }
-  }, [setRooms, client]);
+    communicator.onReady(() => setCommunicatorReady(true));
+  }, [communicator]);
 
   useEffect(() => {
-    const roomMonitor = async function () {
-      var rooms_response = client.getRooms();
-      setRooms(rooms_response);
-      setRoom(rooms_response[rooms_response.length - 1]);
-    };
+    async function bootstrapRooms() {
+      if (communicator && communicatorReady) {
+        const groups = await communicator.getCommunities();
+        setGroups((x) => {
+          if (x) {
+            return x;
+          }
 
-    if (client) {
-      client.on("Room", roomMonitor);
+          return groups;
+        });
+        const rooms = await communicator.getRooms();
+        setRooms((x) => {
+          if (x) {
+            return x;
+          }
+
+          return rooms;
+        });
+      }
     }
 
-    return () => client?.off("Room", roomMonitor);
-  }, [client]);
+    bootstrapRooms();
+  }, [setGroups, setRooms, communicator, communicatorReady]);
 
   const onSend = useCallback(
     (reply) => {
       if (reply) {
-        client?.sendEvent(
-          room.roomId,
-          "m.room.message",
-          {
-            body: reply,
-            msgtype: "m.text",
-          },
-          ""
-        );
+        communicator.messageUser({
+          text: reply,
+          userId: props.users[0].username,
+        });
       }
     },
-    [room, client]
+    [communicator, props.users]
   );
 
-  const { room: target, timeline } = useMatrixRoom(room);
-  const { createRoom } = useMatrixRoomManagement();
+  const { timeline } = useMatrixRoom({
+    userId: communicatorReady && props.users[0].username,
+  });
+  // const { createRoom } = useMatrixRoomManagement();
 
   return (
     <ChatContainer>
       <RoomsContainer>
-        <RoomsView
-          entities={{ rooms }}
-          actions={{
-            onSelect: setRoom,
-            onCreate: (room) => createRoom(room, groups[1].groupId),
-          }}
-        />
+        {rooms && (
+          <RoomsView
+            entities={{ rooms }}
+            actions={{
+              onSelect: setRoom,
+              onCreate: (room) => {
+                console.log("TODO - rewire room creation", room);
+                //createRoom(room, groups[1].groupId)
+              },
+            }}
+          />
+        )}
         {groups && (
           <div>
             {groups.map((g) => (
@@ -113,7 +123,7 @@ export default function ChatView(props: ChatViewProps) {
       </RoomsContainer>
       <ScaledMessagesContainer>
         <AbsoluteMessagesContainer>
-          <MessagesView entities={{ room: target, events: timeline }} />
+          <MessagesView entities={{ room: room, events: timeline }} />
         </AbsoluteMessagesContainer>
         <ReplyView actions={{ onReply: onSend }} />
       </ScaledMessagesContainer>

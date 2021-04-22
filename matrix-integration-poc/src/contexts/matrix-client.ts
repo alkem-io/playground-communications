@@ -1,6 +1,8 @@
 import { createContext } from "react";
-import { MatrixClient } from "matrix-js-sdk/src/client";
+import { ICommunicationFacade } from "../server/communications-facade";
 
-const MatrixClientContext = createContext<MatrixClient>(undefined);
+const MatrixCommunicationFacadeContext = createContext<ICommunicationFacade>(
+  undefined
+);
 
-export default MatrixClientContext;
+export default MatrixCommunicationFacadeContext;

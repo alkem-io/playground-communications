@@ -6,13 +6,13 @@
   },
   "clients": [
     {
-      "name": "nevelichkoff",
-      "username": "@nevelichkoff:cherrytwist.matrix.host",
-      "password": "nevelichkoff-password"
+      "name": "nevelichkoff5",
+      "username": "@nevelichkoff5:cherrytwist.matrix.host",
+      "password": "nevelichkoff3"
     },
     {
-      "name": "nikola",
-      "username": "@nikola:cherrytwist.matrix.host",
+      "name": "nikola5",
+      "username": "@nikola5:cherrytwist.matrix.host",
       "password": "nikola-password"
     }
   ]

@@ -7,6 +7,7 @@ const RoomsContainer = styled.div`
   padding: 8px 16px;
   flex-direction: column;
   flex-grow: 1;
+  overflow: auto;
 `;
 
 const RoomContainer = styled.div`
@@ -56,7 +57,7 @@ export default function RoomsView({ entities, actions }: RoomsViewProps) {
 
 interface RoomViewProps {
   entities: {
-    room: Record<string, any>;
+    room: any;
   };
   actions: {
     onSelect: (room: any) => void;

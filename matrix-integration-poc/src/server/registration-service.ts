@@ -1,6 +1,7 @@
 import {
   IMatrixConfigurationProvider,
   IMatrixUser,
+  IOperationalMatrixUser,
 } from "./matrix-configuration-provider";
 import { MatrixCryptographyProvider } from "./matrix-cryptography-provider";
 
@@ -14,7 +15,7 @@ export class MatrixRegistrationService {
     private cryptographyProvider: MatrixCryptographyProvider
   ) {}
 
-  async register(user: IMatrixUser) {
+  async register(user: IMatrixUser): Promise<IOperationalMatrixUser> {
     const url = `${
       this.configurationProvider.getClientConfiguration().baseUrl
     }${SynapseEndpoints.REGISTRATION}`;
@@ -33,7 +34,21 @@ export class MatrixRegistrationService {
         mac: hmac,
       }),
     });
+    
+    if (
+      registrationResponse.status >= 400 &&
+      registrationResponse.status < 600
+    ) {
+      throw new Error("Bad response from server");
+    }
 
     const response = await registrationResponse.json();
+
+    return {
+      name: user.name,
+      password: user.password,
+      username: response.user_id,
+      accessToken: response.access_token,
+    };
   }
 }

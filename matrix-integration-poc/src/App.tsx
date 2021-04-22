@@ -1,101 +1,90 @@
 import React, { useEffect, useState } from "react";
 import "./App.scss";
-import useMatrixClient from "./hooks/useMatrixClient";
-import matrix_config from "./matrix-config.json";
-var CryptoJS = require("crypto-js");
+import ChatView from "./components/Chat";
+import MatrixCommunicationFacadeContext from "./contexts/matrix-client";
+import { MatrixCommunicationFacade } from "./server/communications-facade";
+import { MatrixLoginService } from "./server/login-service";
+import {
+  IMatrixUser,
+  IOperationalMatrixUser,
+  MatrixJsonConfigurationProvider,
+} from "./server/matrix-configuration-provider";
+import { MatrixCryptographyProvider } from "./server/matrix-cryptography-provider";
+import { MatrixRegistrationService } from "./server/registration-service";
+import users from "./users.json";
 // import MatrixChat from "matrix-react-sdk/src/components/structures/MatrixChat";
 
+const configurationProvider = new MatrixJsonConfigurationProvider();
+const cryptographyProvider = new MatrixCryptographyProvider(
+  configurationProvider
+);
+const registrationService = new MatrixRegistrationService(
+  configurationProvider,
+  cryptographyProvider
+);
+const loginService = new MatrixLoginService(configurationProvider);
+
 function App({ fragParams }) {
-  // const { userId, authParams, config } = useMatrixSso();
-  // need to resolve the CT
-  // console.log(userId, authParams, config, fragParams);
-  const [admin, setAdmin] = useState(null);
-  const loginClient = useMatrixClient({
-    options: { ...matrix_config },
-  });
-
-  // if (!authParams) {
-  //   return <div>Matrix client loading</div>;
-  // }
+  const clients = users.clients as IMatrixUser[];
+  const [operators, setOperators] = useState<IOperationalMatrixUser[]>([]);
+  const [matrixCommunicators, setMatrixCommunicators] = useState<
+    MatrixCommunicationFacade[]
+  >([]);
 
   useEffect(() => {
-    async function login() {
-      await loginClient.loginWithPassword(
-        "@ct-admin:cherrytwist.matrix.host",
-        "ct-admin-pass",
-        (error, response) => {
-          setAdmin(response);
+    async function bootstrapOperators() {
+      let users = [];
+      for (var client of clients) {
+        try {
+          console.log(
+            `Attempting to register ${client.name} with password ${client.password}`
+          );
+          const operationalClient = await registrationService.register(client);
+          users.push(operationalClient);
+        } catch (ex) {
+          console.log(
+            `The user is already registered, falling back to login ${client.name} with password ${client.password}`
+          );
+          const operationalClient = await loginService.login(client);
+          users.push(operationalClient);
         }
-      );
+      }
+
+      setOperators(users);
     }
 
-    if (loginClient) {
-      login();
-    }
-  }, [loginClient]);
-
-  return admin && <AdminApp admin={admin} />;
-  // return (
-  //   <MatrixClientContext.Provider value={client}>
-  //     <ChatView />
-  //   </MatrixClientContext.Provider>
-  // );
-}
-
-export function AdminApp({ admin }) {
-  const client = useMatrixClient({
-    options: {
-      ...matrix_config,
-      userId: admin.user_id,
-      accessToken: admin.access_token,
-    },
-  });
+    bootstrapOperators();
+  }, [clients, setOperators]);
 
   useEffect(() => {
-    const username = "nevelichkoff";
-    const password = "ct-admin-pass";
-
-    async function register() {
-      const url = `${client.baseUrl}/_synapse/admin/v1/register`;
-      const r = await fetch(url);
-      const rjson = await r.json();
-      const nonce = rjson["nonce"];
-
-      let mac = CryptoJS.enc.Utf8.parse(
-        "T0.VmXT3PF.=4QwzTw~6ZAJ0MDK:DqP6PUQwCVwe:INH~oU#JA"
+    async function boostrapCommunicators() {
+      setMatrixCommunicators(
+        operators.map(
+          (o) => new MatrixCommunicationFacade(o, configurationProvider)
+        )
       );
+    }
 
-      let hmac = new CryptoJS.algo.HMAC.init(CryptoJS.algo.SHA1, mac);
-      // hmac.init(CryptoJS.algo.SHA1, mac);
+    boostrapCommunicators();
 
-      hmac.update(CryptoJS.enc.Utf8.parse(nonce));
-      hmac.update(CryptoJS.enc.Utf8.parse("\x00"));
-      hmac.update(CryptoJS.enc.Utf8.parse(username));
-      hmac.update(CryptoJS.enc.Utf8.parse("\x00"));
-      hmac.update(CryptoJS.enc.Utf8.parse(password));
-      hmac.update(CryptoJS.enc.Utf8.parse("\x00"));
-      hmac.update("notadmin");
-
-      let hexHmac = CryptoJS.enc.Hex.stringify(hmac.finalize());
-      // const hexHmac = toHexString(hmac.digest());
-      console.log(mac, hmac, hexHmac);
-      const registration = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({
-          nonce,
-          username: username,
-          password: password,
-          mac: hexHmac,
-        }),
+    return () =>
+      setMatrixCommunicators((x) => {
+        x.forEach((c) => c.dispose());
+        return [];
       });
+  }, [operators, setMatrixCommunicators]);
 
-      const registrationJson = await registration.json();
-    }
-    if (client) {
-      register();
-    }
-  }, [client, admin]);
-  return <div></div>;
+  return (
+    <div style={{ flexGrow: 1, height: "100%", display: "flex" }}>
+      {matrixCommunicators.map((c, i) => (
+        <div style={{ flexGrow: 1, height: "100%", display: "flex" }} key={i}>
+          <MatrixCommunicationFacadeContext.Provider value={c}>
+            <ChatView users={i === 0 ? [operators[1]] : [operators[0]]} />
+          </MatrixCommunicationFacadeContext.Provider>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default App;

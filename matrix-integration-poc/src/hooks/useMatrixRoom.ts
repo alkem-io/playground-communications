@@ -1,40 +1,63 @@
-import { useContext, useEffect, useState } from "react";
-import MatrixClientContext from "../contexts/matrix-client";
+import { useContext, useEffect, useMemo, useState } from "react";
+import MatrixCommunicationFacadeContext from "../contexts/matrix-client";
 
-export default function useMatrixRoom(props: { roomId: string }) {
-  const { roomId } = props || { roomId: null };
-  const client = useContext(MatrixClientContext);
-  const [room, setRoom] = useState(null);
+export default function useMatrixRoom(props: {
+  communityId?: string;
+  userId?: string;
+}) {
+  const { communityId, userId } = props || { roomId: null };
+  const client = useContext(MatrixCommunicationFacadeContext);
+  const [roomId, setRoomId] = useState(null);
   const [timeline, setTimeline] = useState([]);
 
   useEffect(() => {
-    if (roomId) {
-      setRoom(client.getRoom(roomId));
-    }
-  }, [client, roomId, setRoom]);
-
-  useEffect(() => {
-    if (room) {
-      setTimeline([...room.timeline]);
-    }
-  }, [room]);
-
-  useEffect(() => {
-    const timelineMonitor = async function (event) {
-      if (event.getRoomId() === roomId) {
-        setTimeline((t) => [...t, event]);
+    async function bootstrapTimeline() {
+      if (userId) {
+        const { roomId, timeline } = await client.getUserMessages(userId);
+        setTimeline(timeline);
+        setRoomId(roomId);
       }
-    };
-
-    if (roomId && client) {
-      client.on("Room.timeline", timelineMonitor);
     }
 
-    return () => client?.off("Room.timeline", timelineMonitor);
-  }, [roomId, client]);
+    bootstrapTimeline();
+  }, [client, userId, setRoomId, setTimeline]);
+
+  useEffect(() => {
+    async function bootstrapTimeline() {
+      if (communityId) {
+        const { roomId, timeline } = await client.getCommunityMessages(
+          communityId
+        );
+        setTimeline(timeline);
+        setRoomId(roomId);
+      }
+    }
+
+    bootstrapTimeline();
+  }, [client, communityId, setRoomId, setTimeline]);
+
+  const handler = useMemo(
+    () => ({
+      id: "named-dispatcher-because-remouting",
+      roomTimelineMonitor: async function (event) {
+        if (roomId === event.getRoomId()) {
+          setTimeline((x) => [...x, event]);
+        }
+      },
+    }),
+    [setTimeline, roomId]
+  );
+
+  useEffect(() => {
+    client.attach(handler);
+
+    return () => {
+      client.detach(handler);
+    };
+  }, [client, handler]);
 
   return {
-    room,
+    roomId,
     timeline,
   };
 }
