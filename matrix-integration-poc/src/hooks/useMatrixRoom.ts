@@ -41,7 +41,7 @@ export default function useMatrixRoom(props: {
       id: "named-dispatcher-because-remouting",
       roomTimelineMonitor: async function (event) {
         if (roomId === event.getRoomId()) {
-          setTimeline((x) => [...x, event]);
+          setTimeline((x) => [...x.filter((e) => e !== event), event]);
         }
       },
     }),

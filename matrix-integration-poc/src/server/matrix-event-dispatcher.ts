@@ -47,9 +47,11 @@ export class MatrixEventDispatcher implements Disposable, IMatrixEventHandler {
   }
 
   async roomTimelineMonitor(event) {
-    for (let handler of this._handlers) {
-      await (handler?.roomTimelineMonitor &&
-        handler?.roomTimelineMonitor(event));
+    const roomTimelineHandlers = this._handlers.filter(
+      (h) => h?.roomTimelineMonitor
+    );
+    for (let handler of roomTimelineHandlers) {
+      await handler.roomTimelineMonitor(event);
     }
   }
 
