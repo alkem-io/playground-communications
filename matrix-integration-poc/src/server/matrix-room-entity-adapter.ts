@@ -39,7 +39,8 @@ export class MatrixRoomEntityAdapter {
   constructor(private _client: MatrixClient) {}
 
   public async setDmRoom(roomId, userId) {
-    const dmRooms = this.dmRooms;
+    // NOT OPTIMIZED - needs caching
+    const dmRooms = this.dmRooms();
 
     dmRooms[userId] = [roomId];
     await this._client.setAccountData("m.direct", dmRooms);

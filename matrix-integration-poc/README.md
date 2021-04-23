@@ -8,8 +8,10 @@ When running own synapse instance - use the same registration_shared_secret (con
 
 Add as many users as you'd like. There can be one admin in this setup. The admin needs to be registered prior to this.
 
-If we have cloned the Synapse repo we can:
+If we have cloned the Synapse repo we can run - (note: python3 is required):
 `python register_new_matrix_user.py -u ct-admin -p ct-admin-pass -a -k "SHARED_SECRET" http://localhost:8008`
+
+
 
 ## Documentation
 
