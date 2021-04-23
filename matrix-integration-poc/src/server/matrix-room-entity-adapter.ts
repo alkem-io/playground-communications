@@ -1,6 +1,6 @@
 import { MatrixClient } from "matrix-js-sdk/src/client";
 
-enum Visibility {
+export enum Visibility {
   Public = "public",
   Private = "private",
 }
@@ -59,24 +59,6 @@ export class MatrixRoomEntityAdapter {
     }
 
     return mDirectEvent;
-  }
-
-  public communityRooms(): Record<string, string[]> {
-    const communities = this._client.getGroups();
-    const communityRooms = this._client.getRooms();
-
-    let roomMap = {};
-    for (const community of communities) {
-      roomMap[community.groupId] = roomMap[community.groupId] || [];
-
-      for (const room of communityRooms) {
-        if (room.groupId === community.groupId) {
-          roomMap[community.groupId].push(room.roomId);
-        }
-      }
-    }
-
-    return roomMap;
   }
 
   public async createRoom(options: IOpts): Promise<string> {

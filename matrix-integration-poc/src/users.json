@@ -2,7 +2,7 @@
   "admin": {
     "name": "ct-admin",
     "username": "@ct-admin:cherrytwist.matrix.host",
-    "password": "ct-admin-password"
+    "password": "ct-admin-pass"
   },
   "clients": [
     {

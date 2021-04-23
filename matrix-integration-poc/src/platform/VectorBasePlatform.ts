@@ -19,14 +19,13 @@ limitations under the License.
 
 import BasePlatform from "matrix-react-sdk/src/BasePlatform";
 import { _t } from "matrix-react-sdk/src/languageHandler";
-import matrix_config from "../matrix-config.json";
 
 /**
  * Vector-specific extensions to the BasePlatform template
  */
 export default abstract class VectorBasePlatform extends BasePlatform {
   async getConfig(): Promise<{}> {
-    return matrix_config;
+    return {};
   }
 
   getHumanReadableName(): string {

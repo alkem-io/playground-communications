@@ -31,12 +31,17 @@ export class MatrixEventDispatcher implements Disposable, IMatrixEventHandler {
     this._disposables.push(() =>
       this._client.off("RoomMember.membership", roomMemberMembershipMonitor)
     );
+    const groupMyMembershipMonitor = this.groupMyMembershipMonitor.bind(this);
+    this._client.on("Group.myMembership", groupMyMembershipMonitor);
+    this._disposables.push(() =>
+      this._client.off("Group.myMembership", groupMyMembershipMonitor)
+    );
   }
 
   async syncMonitor(syncState, oldSyncState, data) {
-    for (let handler of this._handlers) {
-      await (handler?.syncMonitor &&
-        handler?.syncMonitor(syncState, oldSyncState, data));
+    const syncHandlers = this._handlers.filter((h) => h?.syncMonitor);
+    for (let handler of syncHandlers) {
+      await handler.syncMonitor(syncState, oldSyncState, data);
     }
   }
 
@@ -65,6 +70,13 @@ export class MatrixEventDispatcher implements Disposable, IMatrixEventHandler {
     for (let handler of this._handlers) {
       await (handler?.roomMemberMembershipMonitor &&
         handler?.roomMemberMembershipMonitor(event, member));
+    }
+  }
+
+  async groupMyMembershipMonitor(group) {
+    for (let handler of this._handlers) {
+      await (handler?.groupMyMembershipMonitor &&
+        handler?.groupMyMembershipMonitor(group));
     }
   }
 

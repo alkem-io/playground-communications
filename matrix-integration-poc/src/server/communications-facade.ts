@@ -7,6 +7,7 @@ import {
 } from "./matrix-configuration-provider";
 import { MatrixEventDispatcher } from "./matrix-event-dispatcher";
 import { IMatrixEventHandler } from "./matrix-event-handler";
+import { MatrixGroupEntityAdapter } from "./matrix-group-entity-adapter";
 import { MatrixRoomEntityAdapter } from "./matrix-room-entity-adapter";
 
 export interface ICommunityMessageRequest {
@@ -45,9 +46,10 @@ export interface ICommunicationFacade {
 export class MatrixCommunicationFacade
   implements ICommunicationFacade, IMatrixEventHandler, Disposable {
   //REVERT TO PRIVATE - demo only
-  private _client: MatrixClient;
-  private _eventDispatcher: MatrixEventDispatcher;
-  private _roomEntityAdapter: MatrixRoomEntityAdapter;
+  protected _client: MatrixClient;
+  protected _eventDispatcher: MatrixEventDispatcher;
+  protected _roomEntityAdapter: MatrixRoomEntityAdapter;
+  protected _groupEntityAdapter: MatrixGroupEntityAdapter;
   private _onReady: () => void;
 
   constructor(
@@ -67,6 +69,7 @@ export class MatrixCommunicationFacade
     this._eventDispatcher.attach(this);
 
     this._roomEntityAdapter = new MatrixRoomEntityAdapter(this._client);
+    this._groupEntityAdapter = new MatrixGroupEntityAdapter(this._client);
 
     this._client.startClient();
   }
@@ -113,7 +116,7 @@ export class MatrixCommunicationFacade
   async getCommunityMessages(
     communityId: string
   ): Promise<{ roomId: string; name: string; timeline: IResponseMessage[] }> {
-    const communityRoomIds = this._roomEntityAdapter.communityRooms()[
+    const communityRoomIds = this._groupEntityAdapter.communityRooms()[
       communityId
     ];
     if (!communityRoomIds) {
@@ -168,7 +171,7 @@ export class MatrixCommunicationFacade
 
   async syncMonitor(syncState, oldSyncState, data) {
     if (syncState === "SYNCING" && oldSyncState !== "SYNCING") {
-      this._onReady();
+      this._onReady && this._onReady();
     }
   }
 
@@ -196,7 +199,28 @@ export class MatrixCommunicationFacade
       );
 
       await this._client.joinRoom(roomId);
-      await this._roomEntityAdapter.setDmRoom(roomId, senderId);
+      if (content.is_direct) {
+        await this._roomEntityAdapter.setDmRoom(roomId, senderId);
+      }
+    }
+  }
+
+  async groupMyMembershipMonitor(group) {
+    console.log(
+      `${this._client.credentials.userId} groupMyMembershipMonitor`,
+      group
+    );
+    if (group.myMembership === "invite") {
+      try {
+        await this._client.acceptGroupInvite(
+          group.groupId /* There are additional options, but not documented... saw that some are used in synapse */
+        );
+      } catch (ex) {
+        console.info(
+          "Suppressing exception when user is invited to a non-public group resulting in failure"
+        );
+        console.error(ex);
+      }
     }
   }
 

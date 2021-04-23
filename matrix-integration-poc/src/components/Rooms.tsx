@@ -50,7 +50,7 @@ export default function RoomsView({ entities, actions }: RoomsViewProps) {
         <RoomView entities={{ room: r }} actions={actions} key={r.roomId} />
       ))}
       <div style={{ flexGrow: 1 }}></div>
-      <CreateRoomView actions={actions} />
+      {/* <CreateRoomView actions={actions} /> */}
     </RoomsContainer>
   );
 }

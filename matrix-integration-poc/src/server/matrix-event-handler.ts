@@ -6,4 +6,5 @@ export interface IMatrixEventHandler {
   roomTimelineMonitor?: (event) => Promise<void>;
   roomMemberMonitor?: (event) => Promise<void>;
   roomMemberMembershipMonitor?: (event, member) => Promise<void>;
+  groupMyMembershipMonitor?: (group) => Promise<void>;
 }

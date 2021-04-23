@@ -10,7 +10,6 @@ import {
   showToast as showUpdateToast,
 } from "matrix-react-sdk/src/toasts/UpdateToast";
 import UAParser from "ua-parser-js";
-import matrix_config from "../matrix-config.json";
 import VectorBasePlatform from "./VectorBasePlatform";
 
 const POKE_RATE_MS = 10 * 60 * 1000; // 10 min
@@ -31,7 +30,7 @@ export default class WebPlatform extends VectorBasePlatform {
   }
 
   async getConfig(): Promise<{}> {
-    return matrix_config;
+    return {};
   }
 
   /**
