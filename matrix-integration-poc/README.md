@@ -20,3 +20,7 @@ The base api can be found here [here](http://matrix-org.github.io/matrix-js-sdk/
 _Make sure you've started the Matrix homeserver on port 8008_
 
 `yarn install` & `yarn start`
+
+# Non browser usage
+
+Will require installation of [node-localstorage](https://www.npmjs.com/package/node-localstorage) or similar package
